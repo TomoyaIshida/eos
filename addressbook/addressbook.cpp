@@ -3,7 +3,7 @@
 using std::string;
 using namespace eosio;
 
-class [[eosio::contract]] addressbook : publiceosio::contract{
+class [[eosio::contract]] addressbook : public eosio::contract{
   public:
     addressbook( name receiver, name code, datastream<const char *> ds) : contract(receiver,code,ds) {}
     [[eosio::action]]
