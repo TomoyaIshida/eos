@@ -19,6 +19,31 @@ class [[eosio::contract]] addressbook : public eosio::contract{
         row.tel = tel;
       });
     }
+    [[eosio::action]]
+    void update(name user, uint64_t id, string name, string address, string tel) {
+      require_auth(user);
+
+      address_index addresses(_code, user.value);
+      auto iterator = addresses.find(id);
+      eosio_assert(iterator != addresses.end(), "Record does not exist");
+
+      addresses.modify(iterator, user, [&](auto &row) {
+        row.name = name;
+        row.address = address;
+        row.tel = tel;
+      });
+    }
+
+    [[eosio::action]]
+    void destroy(name user, uint64_t id) {
+      require_auth(user);
+
+      address_index addresses(_code, user.value);
+      auto iterator = addresses.find(id);
+      eosio_assert(iterator != addresses.end(), "Record does not exist");
+
+      addresses.erase(iterator);
+    }
 
     private:
       struct [[eosio::table]] person {
@@ -33,4 +58,4 @@ class [[eosio::contract]] addressbook : public eosio::contract{
       typedef eosio::multi_index<"people"_n, person> address_index;
 };
 
-EOSIO_DISPATCH(addressbook,(create))
+EOSIO_DISPATCH(addressbook,(create)(update)(destroy))
