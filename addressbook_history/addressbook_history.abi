@@ -1,5 +1,5 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Fri Jan 18 13:41:01 2019",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Fri Jan 18 13:54:38 2019",
     "version": "eosio::abi/1.1",
     "structs": [
         {
@@ -11,15 +11,15 @@
                     "type": "name"
                 },
                 {
-                    "name": "name",
+                    "name": "addressbook_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "history_type",
                     "type": "string"
                 },
                 {
-                    "name": "address",
-                    "type": "string"
-                },
-                {
-                    "name": "tel",
+                    "name": "history_content",
                     "type": "string"
                 }
             ]
@@ -29,17 +29,13 @@
             "base": "",
             "fields": [
                 {
-                    "name": "user",
-                    "type": "name"
-                },
-                {
                     "name": "id",
                     "type": "uint64"
                 }
             ]
         },
         {
-            "name": "person",
+            "name": "history",
             "base": "",
             "fields": [
                 {
@@ -47,41 +43,19 @@
                     "type": "uint64"
                 },
                 {
-                    "name": "name",
-                    "type": "string"
-                },
-                {
-                    "name": "address",
-                    "type": "string"
-                },
-                {
-                    "name": "tel",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "name": "update",
-            "base": "",
-            "fields": [
-                {
-                    "name": "user",
-                    "type": "name"
-                },
-                {
-                    "name": "id",
+                    "name": "addressbook_id",
                     "type": "uint64"
                 },
                 {
-                    "name": "name",
+                    "name": "user",
                     "type": "string"
                 },
                 {
-                    "name": "address",
+                    "name": "history_type",
                     "type": "string"
                 },
                 {
-                    "name": "tel",
+                    "name": "history_content",
                     "type": "string"
                 }
             ]
@@ -98,17 +72,12 @@
             "name": "destroy",
             "type": "destroy",
             "ricardian_contract": ""
-        },
-        {
-            "name": "update",
-            "type": "update",
-            "ricardian_contract": ""
         }
     ],
     "tables": [
         {
-            "name": "people",
-            "type": "person",
+            "name": "histories",
+            "type": "history",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
