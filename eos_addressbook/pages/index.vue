@@ -128,7 +128,20 @@ export default {
     },
     deleteContact (contact) {
       if (confirm(' 連絡先を削除します。よろしいですか?')) {
-        this.contacts = this.contacts.filter(item => item.id !== contact.id)
+        this.warning = null
+        this.info = null
+        this.eos.contract('addressbook').then(addressbook => {
+          addressbook.destroy(
+            'bob', contact.id,
+            { authorization: 'bob' }
+          ).then(result => {
+            this.warning = ' トランザクションを送信しました'
+          }).then(async () => {
+            const result = await this.eos.getTableRows(true, 'addressbook', 'bob', 'people')
+            this.contacts = result.rows
+            this.info = ' 連絡先を削除しました'
+          })
+        })
       }
     },
     saveContact () {
