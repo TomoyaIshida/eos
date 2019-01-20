@@ -157,12 +157,21 @@ export default {
       })
     },
     updateContact (contact) {
-      const index = this.contacts.findIndex(item => item.id === this.modalContact.id)
-      const contact = this.contacts[index]
-      console.log('contact :', contact)
-      Object.assign(contact, this.modalContact)
+      this.warning = null
+      this.info = null
 
-      Vue.set(this.contacts, index, contact)
+      this.eos.contract('addressbook').then(addressbook => {
+        addressbook.update(
+          'bob', this.modalContact.id, this.modalContact.name, this.modalContact.address,this.modalContact.tel,
+          { authorization: 'bob' }
+        ).then(result => {
+          this.warning = ' トランザクションを送信しました'
+        }).then(async () => {
+          const result = await this.eos.getTableRows(true, 'addressbook', 'bob', 'people')
+          this.contacts = result.rows
+          this.info = ' 連絡先を更新しました'
+        })
+      })
     }
   }
 }
