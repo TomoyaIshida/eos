@@ -57,14 +57,16 @@
 
 <script>
 import Vue from 'vue'
-import Eos from 'eos.js'
+import Eos from 'eosjs'
 import { validationMixin } from "vuelidate"
 import { required, minLength, maxLength }from "vuelidate/lib/validators"
 
+const CONTRACT_ACCOUNT = 'eosbookaddrs'
 export default {
   data () {
     return {
       eos: null,
+      eosContract: null,
       info: null,
       warning: null,
       modalContact: {},
@@ -113,9 +115,14 @@ export default {
       keyProvider: '5JdhnFydwSo2BBDQFf9vDAVa2Si32bHAwFwWtYXW3cf2NgsMDyM',
     })
 
-    const result = await eos.getTableRows(true, 'addressbook', 'bob', 'people')
+    const result = await eos.getTableRows(true, CONTRACT_ACCOUNT, CONTRACT_ACCOUNT, 'people')
+    const eosContract = await eos.contract(CONTRACT_ACCOUNT)
 
-    return { contacts: result.rows }
+    return { eos, eosContract, account, contacts: result.rows }
+  },
+  asyncrefreshContracts(){
+    const result = await this.eos.getTableRows(true, CONTRACT_ACCOUNT, CONTRACT_ACCOUNT,'people')
+    this.contacts = result.rows
   },
   methods: {
     newContact () {
@@ -127,20 +134,17 @@ export default {
       this.showModal = true
     },
     deleteContact (contact) {
-      if (confirm(' 連絡先を削除します。よろしいですか?')) {
+      if (confirm(' 連絡先を削除します。よろしいですか?')){
         this.warning = null
         this.info = null
-        this.eos.contract('addressbook').then(addressbook => {
-          addressbook.destroy(
-            'bob', contact.id,
-            { authorization: 'bob' }
-          ).then(result => {
-            this.warning = ' トランザクションを送信しました'
-          }).then(async () => {
-            const result = await this.eos.getTableRows(true, 'addressbook', 'bob', 'people')
-            this.contacts = result.rows
-            this.info = ' 連絡先を削除しました'
-          })
+
+        this.eosContract.destroy(
+          this.account.name, contact.id,
+          { authorization: this.account.name }
+        ).then(result => {
+          this.warning = ' トランザクションを送信しました'
+        }).then(async () => {
+          this.info = ' 連絡先を削除しました'
         })
       }
     },
@@ -156,34 +160,25 @@ export default {
       this.warning = null
       this.info = null
 
-      this.eos.contract('addressbook').then(addressbook => {
-        addressbook.create(
-          'bob', this.modalContact.name, this.modalContact.address, this.modalContact.tel,
-          { authorization: 'bob' }
-        ).then(result => {
-          this.warning = ' トランザクションを送信しました'
-        }).then(async () => {
-         const result = await this.eos.getTableRows(true, 'addressbook', 'bob', 'people')
-        this.contacts = result.rows
+      this.eosContract.create(
+        this.account.name, this.modalContact.name, this.modalContact.address, this.modalContact.tel,
+        { authorization: this.account.name }
+      ).then(result => {
+        this.warning = ' トランザクションを送信しました'
+      }).then(async () => {
         this.info = ' 連絡先を登録しました'
-        })
       })
     },
     updateContact (contact) {
       this.warning = null
       this.info = null
 
-      this.eos.contract('addressbook').then(addressbook => {
-        addressbook.update(
-          'bob', this.modalContact.id, this.modalContact.name, this.modalContact.address,this.modalContact.tel,
-          { authorization: 'bob' }
-        ).then(result => {
-          this.warning = ' トランザクションを送信しました'
-        }).then(async () => {
-          const result = await this.eos.getTableRows(true, 'addressbook', 'bob', 'people')
-          this.contacts = result.rows
-          this.info = ' 連絡先を更新しました'
-        })
+      this.eosContract.update(
+        this.account.name, this.modalContact.id, this.modalContact.name, this.modalContact.address,this.modalContact.tel,
+        { authorization: this.account.name }
+      ).then(result => {
+        this.warning = ' トランザクションを送信しました' }).then(async () => {
+        this.info = ' 連絡先を更新しました'
       })
     }
   }
