@@ -64,6 +64,7 @@ import { required, minLength, maxLength }from "vuelidate/lib/validators"
 export default {
   data () {
     return {
+      eos: null,
       info: null,
       warning: null,
       modalContact: {},
@@ -108,10 +109,11 @@ export default {
   async asyncData (context) {
     const eos = Eos({
       httpEndpoint: 'http://127.0.0.1:7777',
-      chainId: '5fff1dae8dc8e2fc4d5b23b2c7665c97f9e9d8edf2b6485a86ba311c25639191'
+      chainId: 'cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f',
+      keyProvider: '5JdhnFydwSo2BBDQFf9vDAVa2Si32bHAwFwWtYXW3cf2NgsMDyM',
     })
 
-    const result = await eos.getTableRows(true, CONTRACT_ACCOUNT, CONTRACT_ACCOUNT, 'people')
+    const result = await eos.getTableRows(true, 'addressbook', 'bob', 'people')
 
     return { contacts: result.rows }
   },
@@ -138,16 +140,21 @@ export default {
       this.showModal = false
     },
     createContact () {
-      let nextId = 0
-      if (this.contacts.length === 0) {
-        nextId = 1
-      } else {
-        nextId = Math.max(...this.contacts.map(item => item.id)) + 1
-      }
+      this.warning = null
+      this.info = null
 
-      const contact = Object.assign({ id: nextId }, this.modalContact)
-
-      this.contacts.push(contact)
+      this.eos.contract('addressbook').then(addressbook => {
+        addressbook.create(
+          'bob', this.modalContact.name, this.modalContact.address, this.modalContact.tel,
+          { authorization: 'bob' }
+        ).then(result => {
+          this.warning = ' トランザクションを送信しました'
+        }).then(async () => {
+         const result = await this.eos.getTableRows(true, 'addressbook', 'bob', 'people')
+        this.contacts = result.rows
+        this.info = ' 連絡先を登録しました'
+        })
+      })
     },
     updateContact (contact) {
       const index = this.contacts.findIndex(item => item.id === this.modalContact.id)
