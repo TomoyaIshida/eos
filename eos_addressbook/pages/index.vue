@@ -1,6 +1,9 @@
 <template>
   <section class="container mt-5">
-    <h2 class='mb-4 text-center'>連絡先リスト</h2>
+    <nav class="navbar navbar-dark bg-secondary mb-3">
+      <span class="navbar-brand mb-0 h1">連絡先リスト</span>
+      <span v-if='account' class="navbar-text">{{account.name}}@{{account.authority}}</span>
+    </nav>
     <b-alert :show='this.warning' variant="warning" dismissible>{{this.warning}}</b-alert>
     <b-alert :show='this.info' variant="success" dismissible>{{this.info}}</b-alert>
     <table class="table table-striped">
@@ -58,6 +61,7 @@
 <script>
 import Vue from 'vue'
 import Eos from 'eosjs'
+import ScatterJS from 'scatter-js/dist/scatter.esm'
 import { validationMixin } from "vuelidate"
 import { required, minLength, maxLength }from "vuelidate/lib/validators"
 
@@ -66,6 +70,7 @@ export default {
   data () {
     return {
       eos: null,
+      account: null,
       eosContract: null,
       info: null,
       warning: null,
@@ -109,16 +114,29 @@ export default {
     }
   },
   async asyncData (context) {
-    const eos = Eos({
-      httpEndpoint: 'http://127.0.0.1:7777',
+    const network = {
+      blockchain: 'eos',
+      protocol: 'http',
+      host: '0.0.0.0',
+      port: 7777,
       chainId: 'cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f',
-      keyProvider: '5JdhnFydwSo2BBDQFf9vDAVa2Si32bHAwFwWtYXW3cf2NgsMDyM',
-    })
+    }
 
-    const result = await eos.getTableRows(true, CONTRACT_ACCOUNT, CONTRACT_ACCOUNT, 'people')
-    const eosContract = await eos.contract(CONTRACT_ACCOUNT)
+    const connected = await ScatterJS.scatter.connect("EOS Addressbook")
+    if(!connected) return false;
 
-    return { eos, eosContract, account, contacts: result.rows }
+    const scatter = ScatterJS.scatter;
+    const requiredFields = { accounts: [network] };
+
+    await scatter.getIdentity(requiredFields);
+    const account = scatter.identity.accounts.find(x => x.blockchain === 'eos');
+    const eosOptions = { expireInSeconds: 60 };
+    const eos = scatter.eos(network, Eos, eosOptions);
+    window.scatter = null;
+
+    const result = await eos.getTableRows(true, 'addressbook', 'bob', 'people')
+
+    return { eos, account, contacts: result.rows }
   },
   asyncrefreshContracts(){
     const result = await this.eos.getTableRows(true, CONTRACT_ACCOUNT, CONTRACT_ACCOUNT,'people')
