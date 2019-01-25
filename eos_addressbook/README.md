@@ -1,7 +1,5 @@
 # eos-addressbook
 
-> My perfect Nuxt.js project
-
 ## Build Setup
 
 ``` bash
